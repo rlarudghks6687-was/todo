@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>엑셀</title>
+    <link rel="stylesheet" href="exce_upload.css" />
+  </head>
+  <body>
+    <form class="upload-box">
+      <h2>Excel File Upload</h2>
+      <p>전송할 엑셀 파일을 선택해주세요.</p>
+
+      <div class="file-wrapper">
+        <input type="file" id="excel-upload" accept=".xlsx, .xls" />
+        <label for="excel-upload" class="myFile">파일 선택</label>
+        <span id="file-name">선택된 파일 없음</span>
+      </div>
+
+      <button type="submit" class="btn-submit">서버로 업로드</button>
+    </form>
+    <script>
+      const fileInput = document.querySelector("#excel-upload");
+      const fileNameDisplay = document.querySelector("#file-name");
+      const uploadForm = document.querySelector(".upload-box");
+
+      document.querySelector("#excel-upload").addEventListener("change", (e) => {
+
+        const file = e.target.files[0];
+
+        if (file) {
+          fileNameDisplay.textContent = file.name;
+        }else{
+          fileNameDisplay.textContent = "선택된 파일 없음";
+        }
+      });
+
+      uploadForm.addEventListener("submit", (e)=>{
+        e.preventDefault();
+
+        const file = fileInput.files[0];
+        if(!file){
+          alert("엑셀 파일 선택 바람");
+          return;
+        }
+        const formData = new FormData();
+        formData.append("myFile", file);
+
+        const submitBtn = uploadForm.querySelector(".btn-submit");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "업로드 중..."
+
+        fetch("/api/excel_upload", {
+          method: "POST",
+          body: formData,
+        })
+          .then((resp) => resp.json())
+          .then((data) => {
+            console.log(data);
+            if (data.retCode === "OK") {
+              alert("전송!");
+              location.reload();
+            } else {
+              alert("실패" + (data.message || "알 수 없는 오류"));
+              submitBtn.disabled = false;
+              submitBtn.textContent = "서버로 업로드";
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+            alert("서버 통신 중 오류가 발생")
+            submitBtn.disabled = false
+            submitBtn.textContent = "서버로 압로드"
+          });
+      });
+
+    </script>
+  </body>
+</html>
